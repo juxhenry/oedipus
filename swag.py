@@ -93,15 +93,6 @@ def a(a:int,c:str,b:bool):
 </ul>
 '''''
 
-# three quotes has started
-# if double:=line.trim()[:3] == '"""' or triple:=line.trim()[:3] == "'''":
-# doc_sema = True
-# doc_type_three =  double
-# if line.trim()[-3:]== '"""' or line.trim()[-3:] == "'''":
-# if doc_sema: docs += line
-# doc_sema = False
-
-
 class A:
     def b(self):
         # if line has _3quote
@@ -143,8 +134,16 @@ class A:
         bool
 
 
-# class B
 def get_ix(line: str)->int:
+    '''
+    consumes a line of python and returns
+    the number of tab-spaces in front of line
+
+    if empty, returns -1
+    :param line:
+    :return:
+    '''
+    if len(line.strip())==0:return -1
     _4space = ' ' * 4
     _tab = '\t'
     tablature = 0
@@ -158,6 +157,7 @@ def get_ix(line: str)->int:
             tablature+=1
         else:
             break
+    print(line,'has',tablature)
     return tablature
 def snooper(path):
     '''
@@ -183,29 +183,46 @@ def snooper(path):
     indx = 0 #tablature
     _1quotes = "'''"
     _2quotes = '"""'
-
+    _quotez = [_1quotes,_2quotes]
     with open(path,'r') as ro_module:
         print('opening',path)
         in_doc=False
-        doc_type=str()
         html=str()
-        for line in ro_module.readlines():
-            curr_ix = get_ix(line)
-            if line.strip()[:3]==d:
-                html += (f'<b>{"".join(line.split("#"))[-1]}')
+        class_ix = 0
+        in_class = False
+        for ix,line in enumerate(ro_module.readlines()[:100]):
+            if get_ix(line) <= class_ix:
+                if in_class:
+                    html+='</ul>'
+                in_class = False
+            if not in_doc:
+                if line.strip()[:len(d)]==d: # method-line
+                    cix = get_ix(line)
 
-            if not in_doc and line.strip()[:3] in [_1quotes, _2quotes]:
-                in_doc = True
-                doc_type = _1quotes if line.strip()[:3][0] == "'" else _2quotes
-                html += ('<p>' + (line if len(line.strip())>3 else '') + '<br>')
+                    if cix > class_ix: #class method
+                        html += (f'<p><li><u><b>{line}</b></u></li></p>')
+                    else:
+                        html += (f'<p><b>{line}</b></p>')
+                elif line.strip()[:len(c)] == c: #class-line
+                    html += (f'<p><i>{line}</i><ul>')
+                    class_ix = get_ix(line)
+                    in_class = True
 
-            elif in_doc and line.strip()[-3:] == doc_type:
-                # Naive implementation;must pop-push to capture complexity
-                html += ('</p>')
-                in_doc = False
-            elif in_doc:
-                html += line
-            print(('*' if in_doc else '') + line, end='')
+            if (card:=sum(map(lambda q:len(line.split(q)),_quotez)))==2:
+                if in_doc:
+                    for q in _quotez:
+                        line = line.replace(q,'')
+                    html += line + '<br>'
+            if card==3:
+                in_doc= not in_doc
+                if in_doc:
+                    for q in _quotez:
+                        line = line.replace(q,'')
+                    html+='<p>'+line+'<br>'
+            if card==4:
+                for q in _quotez:
+                    line=line.replace(q,'')
+                html+='<p>' + line + '</p>'
     return html
 def inorder_search(dr,yogg=0):
     '''
@@ -228,6 +245,7 @@ from os import listdir
 if __name__=='__main__':
     in_path='/Users/jules/opt/anaconda3/lib/python3.8/site-packages/flask'
     out_path='/Users/jules/Desktop/minasgerais/docs'
+
     result = (snooper(in_path+'/ctx.py'))
     with open('/Users/jules/Desktop/minasgerais/windex.html','w+') as a:
         a.write(result)
