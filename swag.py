@@ -85,17 +85,15 @@ def snooper(path:str)->str:
             if not in_doc:
                 if line.strip()[:len(d)]==d: # method-line
                     cix = get_ix(line)
-
-                    # print(rand_color)
                     if cix > class_ix: #class method
-                        html += (f'<p><font color={rand_color}<li><u><b>{line}</b></u></li></font></p>')
+                        html += (f'<li><font color={rand_color}><u><b>{line}</b></u></font></li>')
                     else:
                         html += (f'<p><b>{line}</b></p>')
                 elif line.strip()[:len(c)] == c: #class-line
-                    html += (f'<p><font size=33><i>{line}</font></i><ul>')
-                    class_ix = get_ix(line)
-                    rand_color = str(hex(random.getrandbits(32)))[2:8]
                     in_class = True
+                    rand_color = str(hex(random.getrandbits(32)))[2:8]
+                    html += (f'<p><font size=24 color={rand_color}><i>{line}</font></i><ul>')
+                    class_ix = get_ix(line)
             # Interpret line if contains triquotes
             if (card:=sum(map(lambda q:len(line.split(q)),_quotez)))==2:
                 if in_doc:
