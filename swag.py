@@ -1,4 +1,3 @@
-# TODO: find api to convert path to list of avaiable modules
 '''
 /******************************************************************************
 * Copyright (C) 1996-2021 suli.org, Booljawn.
@@ -23,117 +22,8 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 '''
-import os,sys
-import pathlib as ___pl
-# print(___pl.sys.path('~/Users/jules/opt/anaconda3/lib/python3.8/site-packages'))
-
-class Dr:#directory
-    def __init__(s,nm):s.nm,s.fs=nm,[]
-def test_get_module_files(path):
-    '''
-    when api is found, this gets the files in the path,
-    based on the curr path
-
-    for now, dummy
-    :param path:
-    :return:
-    '''
-    if path == '~':
-        j=[str(i) for i in range(9)]
-    elif 'x' in path:
-        j=[[]if i%2 else 'x'+str(i) for i in range(9)]
-    return j
-def test_build_dir():
-    root=Dr('~')
-    # -
-    #    o
-    #    o
-    #        x
-    #        x
-    #        x
-    #    ...
-    #    4 o x-z0,z1,z2 x-z0, x
-
-    #pop root
-
-    for o in test_get_module_files(root.nm):
-        root.fs+=[Dr(root.nm+'/'+Dr(o).nm)]
-    dn = lambda o: o.split('/')[-1]  # dirname
-    for f in root.fs:
-        if int(dn(f.nm))%2:
-            f.fs+=[Dr(root.nm+'/'+dn(f.nm)+'/'+str(chr(i))) for i in range(65,69)]
-    return root
-    # for f in root.fs:
-    #     if int(dn(f.nm))%2:
-    #         for e in root.fs[int(dn(f.nm))].fs:
-    #             e.fs+=[Dr(''+j) for j in range(3)]
-    #
-    # return root
-
-def a(a:int,c:str,b:bool):
-    '''
-    does somethin
-    :param a:
-    :param c:
-    :param b:
-    :return:
-    '''
-    return bool
-'''
-<ul>
-  <li>Fruit
-    <ul>
-      <li>Bananas</li>
-      <li>Apples</li>
-      <li>Pears</li>
-    </ul>
-  </li>
-  <li>Vegetables</li>
-  <li>Meat</li>
-</ul>
-'''''
-
-class A:
-    def b(self):
-        # if line has _3quote
-        '''
-        sadfasdfad
-        :return:
-        """
-
-        """
-                        ''' '''
-                        
-        '''
-        rrrr=0
-        """ docs1
-""" ''' """ ''' """ '''docs2
-            ''' """
-        '''
-        ddd
-        ''' """'''"""
-
-        exception = "" \
-                    "''' "\
-                    "" \
-                    "not in docuemntaiton" \
-                    "'''" \
-                    "" \
-                    ""
-        f= ['"""'
-            '"""'
-            ]
-        #parse escaped threequotes
-        print
-        def f(): # assert len(line.split('\t'))==2
-            print
-            def g(): # assert len(line.split('\t'))==3
-                print
-                #4
-    def c(self):
-        bool
-
-
+import os,random
+# random.seed(23)
 def get_ix(line: str)->int:
     '''
     consumes a line of python and returns
@@ -157,10 +47,11 @@ def get_ix(line: str)->int:
             tablature+=1
         else:
             break
-    print(line,'has',tablature)
+    print(tablature,str(chr(33))*5, line[:-2],)
     return tablature
-def snooper(path):
+def snooper(path:str)->str:
     '''
+    Snoops into a python module, and returns html describing it.
     consumes path and produces html depth 1
 
     This is not a full-on python interpreter
@@ -173,24 +64,20 @@ def snooper(path):
     2. 'classes'
     3a c.mrthds
     3b. 'loose methods'
-    :param path:
-    :return:
+    :param path: python-raw.py
+    :return: str: html-raw.html
     '''
-    html = ''
     if path[-3:]!='.py':return None # this aint python
     c='class'
     d='def'
-    indx = 0 #tablature
-    _1quotes = "'''"
-    _2quotes = '"""'
-    _quotez = [_1quotes,_2quotes]
+    _quotez = ["'''",'"""']
     with open(path,'r') as ro_module:
         print('opening',path)
         in_doc=False
         html=str()
         class_ix = 0
         in_class = False
-        for ix,line in enumerate(ro_module.readlines()[:100]):
+        for ix,line in enumerate(ro_module.readlines()[:10000]):
             if get_ix(line) <= class_ix:
                 if in_class:
                     html+='</ul>'
@@ -199,15 +86,17 @@ def snooper(path):
                 if line.strip()[:len(d)]==d: # method-line
                     cix = get_ix(line)
 
+                    # print(rand_color)
                     if cix > class_ix: #class method
-                        html += (f'<p><li><u><b>{line}</b></u></li></p>')
+                        html += (f'<p><font color={rand_color}<li><u><b>{line}</b></u></li></font></p>')
                     else:
                         html += (f'<p><b>{line}</b></p>')
                 elif line.strip()[:len(c)] == c: #class-line
-                    html += (f'<p><i>{line}</i><ul>')
+                    html += (f'<p><font size=33><i>{line}</font></i><ul>')
                     class_ix = get_ix(line)
+                    rand_color = str(hex(random.getrandbits(32)))[2:8]
                     in_class = True
-
+            # Interpret line if contains triquotes
             if (card:=sum(map(lambda q:len(line.split(q)),_quotez)))==2:
                 if in_doc:
                     for q in _quotez:
@@ -241,12 +130,12 @@ def inorder_search(dr,yogg=0):
     print('\t'*yogg,dr.nm,''if dr.fs else'.html')
     #moreover, call snooper to build docs html
     [inorder_search(f,yogg=yogg+1) for f in dr.fs]
-from os import listdir
-if __name__=='__main__':
-    in_path='/Users/jules/opt/anaconda3/lib/python3.8/site-packages/flask'
-    out_path='/Users/jules/Desktop/minasgerais/docs'
 
-    result = (snooper(in_path+'/ctx.py'))
+if __name__=='__main__':
+    in_path='/Users/jules/opt/anaconda3/lib/python3.8/site-packages/flask'+ '/ctx.py'
+    out_path='/Users/jules/Desktop/minasgerais/docs'
+    # in_path =  '/Users/jules/Desktop/minasgerais/swag.py'
+    result = (snooper(in_path))
     with open('/Users/jules/Desktop/minasgerais/windex.html','w+') as a:
         a.write(result)
     # print(listdir(in_path))
